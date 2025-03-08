@@ -2,9 +2,11 @@
 const jwt = require('jsonwebtoken');
 const { jwtConfig } = require('../config');
 const { User } = require('../db/models');
+
 const { secret, expiresIn } = jwtConfig;
 
-// Sends a JWT Cookie
+
+// Set Token Cookie after user is signed in up signed up
 const setTokenCookie = (res, user) => {
     // Create the token.
     const safeUser = {
@@ -31,8 +33,10 @@ const setTokenCookie = (res, user) => {
     return token;
   };
 
-//-------------------
-//restore
+
+
+
+  // Restore a user
 
 const restoreUser = (req, res, next) => {
     // token parsed from cookies
@@ -63,8 +67,11 @@ const restoreUser = (req, res, next) => {
   };
 
 
-// If there is no current user, return an error
 
+
+  // Require Authentication
+
+// If there is no current user, return an error
 const requireAuth = function (req, _res, next) {
     if (req.user) return next();
   
@@ -74,5 +81,9 @@ const requireAuth = function (req, _res, next) {
     err.status = 401;
     return next(err);
   }
+
+
+
+
 
 module.exports = { setTokenCookie, restoreUser, requireAuth };

@@ -3,16 +3,10 @@
 const { User } = require('../models');
 const bcrypt = require("bcryptjs");
 
-
-
-/** @type {import('sequelize-cli').Migration} */
-
-
 let options = {};
 if (process.env.NODE_ENV === 'production') {
   options.schema = process.env.SCHEMA;  // define your schema in options object
 }
-
 
 module.exports = {
   async up (queryInterface, Sequelize) {
@@ -30,8 +24,7 @@ module.exports = {
       {
         email: 'user2@user.io',
         username: 'FakeUser2',
-        hashedPassword: bcrypt.hashSync('password3'),
-
+        hashedPassword: bcrypt.hashSync('password3')
       }
     ], { validate: true });
   },
@@ -42,8 +35,5 @@ module.exports = {
     return queryInterface.bulkDelete(options, {
       username: { [Op.in]: ['Demo-lition', 'FakeUser1', 'FakeUser2'] }
     }, {});
-  
-
   }
-  
 };
