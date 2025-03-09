@@ -11,7 +11,7 @@ const router = express.Router();
 const { check } = require('express-validator');
 const { handleValidationErrors } = require('../../utils/validation');
 
-  //check login username andn password
+  //check login username and password Middleware
   const validateLogin = [
     check('credential')
       .exists({ checkFalsy: true })
@@ -58,6 +58,33 @@ router.post(
     return res.json({
       user: safeUser
     });
+  }
+);
+
+  // Log out
+  router.delete(
+    '/',
+    (_req, res) => {
+      res.clearCookie('token');
+      return res.json({ message: 'success' });
+    }
+  );
+
+  // Restore session user
+router.get(
+  '/',
+  (req, res) => {
+    const { user } = req;
+    if (user) {
+      const safeUser = {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+      };
+      return res.json({
+        user: safeUser
+      });
+    } else return res.json({ user: null });
   }
 );
 
