@@ -84,7 +84,7 @@ const ValidateQueryFilters = [
       handleValidationErrors
     ];
     
-    router.get('/spots', ValidateQueryFilters,async(req,res)=>{
+    router.get('/', ValidateQueryFilters,async(req,res)=>{
         try{
         const { page = 1, size = 20, minPrice, maxPrice, state, city } = req.query;
         //pagination. Databases use zero based indexing
@@ -95,9 +95,9 @@ const ValidateQueryFilters = [
         //query filter object
         let where = {};
         //I'm storing this in the where object.. basically storing and sql statement that would be "SELECT * FROM spots WHERE price >= 100;""
-        if(minPrice) where.minPrice = { [Op.gte]: parseFloat(minPrice)};
+        if(minPrice) where.price = { [Op.gte]: parseFloat(minPrice)};
         //Now Storing "SELECT * FROM spots WHERE price BETWEEN 100 AND 500" as where.price
-        if(maxPrice) where.minPrice = { ...where.price, [Op.gte]: parseFloat(minPrice)};
+        if(maxPrice) where.price = { ...where.price, [Op.gte]: parseFloat(minPrice)};
         if(city) where.city = city;
         if(state) where.state = state;
 
@@ -107,8 +107,8 @@ const ValidateQueryFilters = [
             offset,
             include:[
                 {
-                    Model: SpotImage,
-                    url: ['url'], // we must use array here. sequelize requires. 
+                    model: SpotImage,
+                    attributes: ['url'], // we must use array here. sequelize requires. 
                     limit:1 //might want to add a preview image column later. I believe this jsut chooses one image. Not a designated image to preview
                 }
             ]
@@ -116,7 +116,7 @@ const ValidateQueryFilters = [
             
         })
         // return a json object 
-        return res.status.json({ Spots: spots, page, size });
+        return res.status(200).json({ Spots: spots, page, size });
 
     }catch(error){
         console.error('Error... could not fetch spots');
@@ -127,4 +127,6 @@ const ValidateQueryFilters = [
         
 
     })
+    
 
+    module.exports = router
