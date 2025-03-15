@@ -142,10 +142,29 @@ router.get("/current", requireAuth, async (req, res) => {
     return res.status(200).json({ Spots: spots });
   } catch (error) {
     return res.status(500).json({ message: "Error retrieving spots" });
-
   }
 });
 
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    //use findByPk and get it from the req.params
+    const spot = await Spot.findByPk(id, {
+      include: [
+        {
+          model: SpotImage,
+          attributes: ["url"],
+          limit: 1,
+        },
+      ],
+    });
+    if (!spot) return res.status(404).json({ message: "No spot was found" });
 
+    return res.status(200).json({ Spot: spot });
+  } catch (error) {
+    console.error("Error fetching spot");
+    return res.status(500).json({ message: "Error retrieving spot from id" });
+  }
+});
 
 module.exports = router;
