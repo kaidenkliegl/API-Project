@@ -86,6 +86,8 @@ const ValidateQueryFilters = [
   handleValidationErrors,
 ];
 
+
+//get all spots 
 router.get("/", ValidateQueryFilters, async (req, res) => {
   try {
     const { page = 1, size = 20, minPrice, maxPrice, state, city } = req.query;
@@ -93,7 +95,6 @@ router.get("/", ValidateQueryFilters, async (req, res) => {
     //parsing to turn the params into a number
     let limit = parseInt(size);
     const offset = (parseInt(page) - 1) * limit;
-
     //query filter object
     let where = {};
     //I'm storing this in the where object.. basically storing and sql statement that would be "SELECT * FROM spots WHERE price >= 100;""
@@ -124,7 +125,7 @@ router.get("/", ValidateQueryFilters, async (req, res) => {
   }
 });
 
-// 5. Implement GET /api/spots/current:
+//get current users spots 
 router.get("/current", requireAuth, async (req, res) => {
   //used the requuireAuth middleware imported
   try {
@@ -145,6 +146,8 @@ router.get("/current", requireAuth, async (req, res) => {
   }
 });
 
+
+//getting a spot from an id 
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -164,6 +167,44 @@ router.get("/:id", async (req, res) => {
   } catch (error) {
     console.error("Error fetching spot");
     return res.status(500).json({ message: "Error retrieving spot from id" });
+  }
+});
+
+
+//creating a new spot
+router.post("/", requireAuth, validateSpot, async (req, res) => {
+  try {
+    const {
+      address,
+      city,
+      state,
+      country,
+      lat,
+      lng,
+      name,
+      description,
+      price,
+    } = req.body;
+
+    const ownerId = req.user.id;
+
+    const newSpot = Spot.create({
+      ownerId,
+      address,
+      city,
+      state,
+      country,
+      lat,
+      lng,
+      name,
+      description,
+      price,
+    });
+
+    return res.status(200).json({ newSpot: newSpot });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Could not create a new Spot" });
   }
 });
 
