@@ -14,7 +14,7 @@ router.use('/session', sessionRouter);
 
 router.use('/users', usersRouter);
 
-router.use('/spot', spotRouter);
+router.use('/spots', spotRouter);
 
 // Keep this route to test frontend setup in Mod 5
 router.post('/test', function (req, res) {
