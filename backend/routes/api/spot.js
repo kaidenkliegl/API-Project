@@ -86,8 +86,7 @@ const ValidateQueryFilters = [
   handleValidationErrors,
 ];
 
-
-//get all spots 
+//get all spots
 router.get("/", ValidateQueryFilters, async (req, res) => {
   try {
     const { page = 1, size = 20, minPrice, maxPrice, state, city } = req.query;
@@ -125,7 +124,7 @@ router.get("/", ValidateQueryFilters, async (req, res) => {
   }
 });
 
-//get current users spots 
+//get current users spots
 router.get("/current", requireAuth, async (req, res) => {
   //used the requuireAuth middleware imported
   try {
@@ -146,8 +145,7 @@ router.get("/current", requireAuth, async (req, res) => {
   }
 });
 
-
-//getting a spot from an id 
+//getting a spot from an id
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -169,7 +167,6 @@ router.get("/:id", async (req, res) => {
     return res.status(500).json({ message: "Error retrieving spot from id" });
   }
 });
-
 
 //creating a new spot
 router.post("/", requireAuth, validateSpot, async (req, res) => {
@@ -205,6 +202,39 @@ router.post("/", requireAuth, validateSpot, async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Could not create a new Spot" });
+  }
+});
+
+//add an image to the spot by spot id in params
+router.post("/:id/images", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const { url, preview } = req.body;
+
+    const spot = await Spot.findByPk(id);
+
+    console.log('spot found here!!!!', spot)
+
+    if (!spot) return res.status(404).json({ message: "Spot not found" });
+
+    if (spot.ownerId !== userId)
+      return res.status(403).json({ message: "Forbidden access!" });
+
+    const image = SpotImage.create({
+      spotId: id,
+      url,
+      preview,
+    });
+
+    return res.status(200).json({
+      id: image.id,
+      url: image.url,
+      preview: image.preview
+    })
+  } catch (error) {
+    console.error('Could not add Image.', error)
+    return res.send(500).json({message: "Internal server error"})
   }
 });
 
