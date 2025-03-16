@@ -214,7 +214,7 @@ router.post("/:id/images", requireAuth, async (req, res) => {
 
     const spot = await Spot.findByPk(id);
 
-    console.log('spot found here!!!!', spot)
+    console.log("spot found here!!!!", spot);
 
     if (!spot) return res.status(404).json({ message: "Spot not found" });
 
@@ -230,11 +230,56 @@ router.post("/:id/images", requireAuth, async (req, res) => {
     return res.status(200).json({
       id: image.id,
       url: image.url,
-      preview: image.preview
-    })
+      preview: image.preview,
+    });
   } catch (error) {
-    console.error('Could not add Image.', error)
-    return res.send(500).json({message: "Internal server error"})
+    console.error("Could not add Image.", error);
+    return res.send(500).json({ message: "Internal server error" });
+  }
+});
+
+//edit a spot
+router.put("/:id", requireAuth, validateSpot, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const {
+      address,
+      city,
+      state,
+      country,
+      lat,
+      lng,
+      name,
+      description,
+      price,
+    } = req.body;
+
+    console.log("Requested Spot ID:", id);
+
+    const spot = await Spot.findByPk(id);
+
+    if (!spot) return res.status(404).json({ message: "Spot not found" });
+    if (spot.ownerId !== userId) {
+      return res.status(403).json({ message: "Forbidden access!" });
+    }
+    spot.address = address;
+    spot.city = city;
+    spot.state = state;
+    spot.country = country;
+    spot.lat = lat;
+    spot.lng = lng;
+    spot.name = name;
+    spot.description = description;
+    spot.price = price;
+
+    //going with the .save instead of .update
+    await spot.save();
+
+    return res.status(200).json(spot);
+  } catch (error) {
+    console.error("Error updating spot: ", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
