@@ -16,6 +16,8 @@ router.use('/users', usersRouter);
 
 router.use('/spots', spotRouter);
 
+router.use('/reviews',Reviews );
+
 // Keep this route to test frontend setup in Mod 5
 router.post('/test', function (req, res) {
   res.json({ requestBody: req.body });
