@@ -9,13 +9,13 @@ module.exports = (sequelize, DataTypes) => {
       User.hasMany(models.Spot,{
         foreignKey:'ownerId',
         onDelete: 'CASCADE',
-        as: 'Spot'
+        as: 'Spots'
       });
-      // User.hasMany(models.Reviews,{
-      //   foreignKey: 'userId',
-      //   onDelete: 'CASCADE',
-      //   as:'Reviews'
-      // });
+      User.hasMany(models.Review,{
+        foreignKey: 'userId',
+        onDelete: 'CASCADE',
+        as:'Reviews'
+      });
       // User.hasMany(models.Bookings,{
       //   foreignKey:'userId',
       //   onDelete:"CASCADE",
@@ -67,6 +67,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: 'User',
+      tableName: "Users",
       defaultScope: {
         attributes: {
           exclude: ['hashedPassword', 'email', 'createdAt', 'updatedAt'],

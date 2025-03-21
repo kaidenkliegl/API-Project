@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router(); // this is the router object
 const { setTokenCookie, requireAuth } = require("../../utils/auth.js");
-const { User, Spot, SpotImage, Review, Booking } = require("../../db/models");
+const { User, Spot, SpotImage, Review, Booking, ReviewImage } = require("../../db/models");
 const { check, query } = require("express-validator");
 const { handleValidationErrors } = require("../../utils/validation");
 const { Op, Model } = require("sequelize");
@@ -62,4 +62,9 @@ router.get("/current", requireAuth, async (req, res) => {
 });
 
 
+router.post("/:reviewId/images", requireAuth, async (req, res) => {
+const {reviewId} = req.params
+const {url} = req.body
+
+})
 module.exports = router
