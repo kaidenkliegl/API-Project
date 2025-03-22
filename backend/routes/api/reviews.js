@@ -9,6 +9,7 @@ const {
   Booking,
   ReviewImage,
 } = require("../../db/models");
+
 const { check, query } = require("express-validator");
 const { handleValidationErrors } = require("../../utils/validation");
 const { Op, Model, where } = require("sequelize");
@@ -88,7 +89,45 @@ router.post("/:reviewId/images", requireAuth, async (req, res) => {
     return res.status(200).json({ id: newImage.id, url: newImage.url });
   } catch (error) {
     console.error("Error adding review image:", error);
-    res.status(500).json({ message: "SERVER ERROR" });
+   return res.status(500).json({ message: "SERVER ERROR" });
   }
 });
+
+
+router.put("/:reviewId", requireAuth, checkValidation, async (req,res) => {
+const { reviewId } = req.params;
+const { reviewText, stars } = req.body;
+const userId = req.user.id
+
+try{
+    const updatedReview = await Review.findByPk(reviewId);
+
+if(!updatedReview) return res.status(404).json({error:"Review not found"})
+if(updatedReview.userId !== userId)return res.status(403).json({error:"Forbidden: User does not belong to you"})
+
+await updatedReview.update({ updatedReview, stars})
+return res.status(200).json({message: "Updated review successfully", updatedReview})
+}catch(error){
+    console.error("Error updating review:", error)
+    return res.status(500).json({ message: "SERVER ERROR" });
+}
+})
+
+router.delete("/:reviewId", requireAuth, async (req,res) => {
+const { reviewId } = req.params;
+const userId = req.user.id
+
+try{
+    const review = await Review.findByPk(reviewId);
+
+if(!review) return res.status(404).json({error:"Review not found"})
+if(review.userId !== userId)return res.status(403).json({error:"Forbidden: User does not belong to you"})
+
+await review.destroy()
+return res.status(200).json({message: "Deleted review successfully"})
+}catch(error){
+    console.error("Error deleting review:", error)
+    return res.status(500).json({ message: "SERVER ERROR" });
+}
+})
 module.exports = router;
