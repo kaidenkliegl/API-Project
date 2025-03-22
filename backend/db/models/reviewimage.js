@@ -18,9 +18,14 @@ module.exports = (sequelize, DataTypes) => {
     {
       reviewId: {
         type: DataTypes.INTEGER,
-        allowNull:false
+        allowNull: false,
+        references: {
+          model: "Reviews", // Ensure this matches your table name
+          key: "id",
+        },
+        onDelete: "CASCADE",
       },
-
+      
       url: {
         type: DataTypes.STRING,
         allowNull:false,
