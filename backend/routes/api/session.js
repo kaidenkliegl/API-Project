@@ -24,6 +24,41 @@ const { handleValidationErrors } = require('../../utils/validation');
   ];
 
 // Log in
+
+// ===============================
+// POST /api/session
+// Description: Log in a user
+// Request Body:
+// {
+//   "credential": "john.smith@gmail.com",
+//   "password": "secret password"
+// }
+// Success Response (200):
+// {
+//   "user": {
+//     "id": 1,
+//     "firstName": "John",
+//     "lastName": "Smith",
+//     "email": "john.smith@gmail.com",
+//     "username": "JohnSmith"
+//   }
+// }
+// Error Response (401 - Invalid Credentials):
+// {
+//   "message": "Login failed",
+//   "errors": {
+//     "credential": "The provided credentials were invalid."
+//   }
+// }
+// Error Response (400 - Validation):
+// {
+//   "message": "Validation error",
+//   "errors": {
+//     "credential": "Please provide a valid email or username.",
+//     "password": "Please provide a password."
+//   }
+// }
+// ===============================
 router.post(
   '/',
   validateLogin,
@@ -64,6 +99,12 @@ router.post(
 );
 
   // Log out
+// ===============================
+// DELETE /api/session
+// Description: Log out the current user
+// Success Response (200):
+// { "message": "success" }
+// ===============================
   router.delete(
     '/',
     (_req, res) => {
@@ -73,6 +114,22 @@ router.post(
   );
 
   // Restore session user
+// ===============================
+// GET /api/session
+// Description: Restore session user
+// Success Response (200):
+// {
+//   "user": {
+//     "id": 1,
+//     "firstName": "John",
+//     "lastName": "Smith",
+//     "email": "john.smith@gmail.com",
+//     "username": "JohnSmith"
+//   }
+// }
+// If not logged in:
+// { "user": null }
+// ===============================
 router.get(
   '/',
   (req, res) => {

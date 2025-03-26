@@ -10,6 +10,33 @@ const { setTokenCookie, requireAuth } = require('../../utils/auth');
 const { User } = require('../../db/models');
 
 
+// Current Logged-in User
+// GET /api/users/current
+// Description: Returns the current logged-in user or null if not logged in
+// Success Response (200):
+// {
+//   "user": {
+//     "id": 1,
+//     "firstName": "John",
+//     "lastName": "Smith",
+//     "email": "john.smith@gmail.com",
+//     "username": "JohnSmith"
+//   }
+// }
+// If no user is logged in:
+// { "user": null }
+
+router.get('/current', restoreUser, async(req, res) => {
+  if(!req.user) {
+    return res.json({ user: null});
+  }
+  const {id, firstName, lastName, email, username } = req.user;
+  return res.json({
+    user: { id, firstName, lastName, email, username}
+  });
+
+ 
+});
 
 // Validate sign up Middleware
 const validateSignup = [
@@ -32,7 +59,48 @@ const validateSignup = [
   handleValidationErrors
 ];
 
+
 // Sign up
+// ===============================
+// POST /api/users
+// Description: Sign up a new user
+// Request Body:
+// {
+//   "firstName": "John",
+//   "lastName": "Smith",
+//   "email": "john.smith@gmail.com",
+//   "username": "JohnSmith",
+//   "password": "secret password"
+// }
+// Success Response (201):
+// {
+//   "user": {
+//     "id": 1,
+//     "firstName": "John",
+//     "lastName": "Smith",
+//     "email": "john.smith@gmail.com",
+//     "username": "JohnSmith"
+//   }
+// }
+// Error Response (400 - Validation):
+// {
+//   "message": "Validation error",
+//   "errors": {
+//     "email": "Invalid email",
+//     "username": "Username is required",
+//     "firstName": "First Name is required",
+//     "lastName": "Last Name is required"
+//   }
+// }
+// Error Response (500 - User Exists):
+// {
+//   "message": "User already exists",
+//   "errors": {
+//     "email": "User with that email already exists",
+//     "username": "User with that username already exists"
+//   }
+// }
+// ===============================
 router.post(
   '/',
   validateSignup,
@@ -51,10 +119,10 @@ router.post(
 
     await setTokenCookie(res, safeUser);
 
-    return res.json({
+    return res.status(201).json({
       user: safeUser
     });
-  }
-);
+  });
+
 
 module.exports = router;
