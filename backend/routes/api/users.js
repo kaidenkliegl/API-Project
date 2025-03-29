@@ -6,7 +6,7 @@ const { handleValidationErrors } = require('../../utils/validation');
 
 const bcrypt = require('bcryptjs');
 
-const { setTokenCookie, requireAuth } = require('../../utils/auth');
+const { setTokenCookie, requireAuth, restoreUser  } = require('../../utils/auth');
 const { User } = require('../../db/models');
 
 
