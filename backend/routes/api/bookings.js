@@ -26,7 +26,7 @@ const validateBooking = [
   handleValidationErrors
 ];
 
-// Get all bookings 
+// GET ALL BOOKINGS
 router.get('/', async (req, res) => {
     const bookings = await Booking.findAll();
       return res.json({
@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
 
 
 
-  // Get all bookings for a Spot 
+  // GET ALL BOOKINGS FOR A SPOT
 router.get('/spotbookings/:id', requireAuth, async (req, res) =>{
   const { user } = req;
 
@@ -88,7 +88,7 @@ if(spot.ownerId !== user.id){
 
 
 
- // Get all bookings from current user 
+ // GET ALL BOOKINGS FROM CURRENT USER
 router.get('/userbookings', requireAuth, async (req, res) => {
 
   const { user } = req;
