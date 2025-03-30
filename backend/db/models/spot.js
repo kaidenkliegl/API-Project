@@ -22,10 +22,10 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: 'CASCADE',
       });
 
-      // Spot.hasMany(models.Review, { 
-      //   foreignKey: 'spotId', 
-      //   onDelete: 'CASCADE',
-      // });
+      Spot.hasMany(models.Review, { 
+        foreignKey: 'spotId', 
+        onDelete: 'CASCADE',
+      });
       // Spot.hasMany(models.Booking, { 
       //   foreignKey: 'spotId', 
       //   onDelete: 'CASCADE',
@@ -111,6 +111,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Spot',
+    tableName: "Spots"
   });
 
   return Spot;

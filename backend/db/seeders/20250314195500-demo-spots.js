@@ -1,5 +1,5 @@
 'use strict';
-const { Spot } = require('../models')
+const { Spot} = require('../models')
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {

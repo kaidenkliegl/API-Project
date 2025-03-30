@@ -1,10 +1,19 @@
 const express = require("express");
 const router = express.Router(); // this is the router object
 const { setTokenCookie, requireAuth } = require("../../utils/auth.js");
-const { User, Spot, SpotImage, Review, Booking } = require("../../db/models");
+
+const {
+  User,
+  Spot,
+  SpotImage,
+  ReviewImage,
+  Review,
+  Booking,
+} = require("../../db/models");
 const { check, query } = require("express-validator");
 const { handleValidationErrors } = require("../../utils/validation");
 const { Op, Model } = require("sequelize");
+const { reviewValidation } = require("../../utils/validation.js");
 
 //Using a validation middleware to catch any errors before they reach the database
 const validateSpot = [
@@ -214,7 +223,7 @@ router.post("/:id/images", requireAuth, async (req, res) => {
 
     const spot = await Spot.findByPk(id);
 
-    console.log('spot found here!!!!', spot)
+    console.log("spot found here!!!!", spot);
 
     if (!spot) return res.status(404).json({ message: "Spot not found" });
 
@@ -230,12 +239,126 @@ router.post("/:id/images", requireAuth, async (req, res) => {
     return res.status(200).json({
       id: image.id,
       url: image.url,
-      preview: image.preview
-    })
+      preview: image.preview,
+    });
   } catch (error) {
-    console.error('Could not add Image.', error)
-    return res.send(500).json({message: "Internal server error"})
+    console.error("Could not add Image.", error);
+    return res.send(500).json({ message: "Internal server error" });
   }
 });
 
+//edit a spot
+router.put("/:id", requireAuth, validateSpot, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const {
+      address,
+      city,
+      state,
+      country,
+      lat,
+      lng,
+      name,
+      description,
+      price,
+    } = req.body;
+
+    console.log("Requested Spot ID:", id);
+
+    const spot = await Spot.findByPk(id);
+
+    if (!spot) return res.status(404).json({ message: "Spot not found" });
+    if (spot.ownerId !== userId) {
+      return res.status(403).json({ message: "Forbidden access!" });
+    }
+    spot.address = address;
+    spot.city = city;
+    spot.state = state;
+    spot.country = country;
+    spot.lat = lat;
+    spot.lng = lng;
+    spot.name = name;
+    spot.description = description;
+    spot.price = price;
+
+    //going with the .save instead of .update
+    await spot.save();
+
+    return res.status(200).json(spot);
+  } catch (error) {
+    console.error("Error updating spot: ", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+//delete spot
+router.delete("/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+  try {
+    const spot = await Spot.findByPk(id);
+    if (!spot) return res.status(404).json({ message: "Spot not found" });
+    if (spot.ownerId !== userId) {
+      return res.status(403).json({ message: "Forbidden access!" });
+    }
+    await spot.destroy();
+
+    return res.status(200).json({ message: "Spot successfully deleted" });
+  } catch (error) {
+    console.error("Could not delete spot, Error: ", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.get("/:spotId/reviews", async (req, res) => {
+  const { spotId } = req.params;
+  try {
+    const spot = await Spot.findByPk(spotId);
+    if (!spot) return res.status(404).json({ message: "Spot not found" });
+
+    const spotReviews = await Review.findAll({
+      where: { spotId },
+      include: [
+        {
+          model: User,
+          attributes: ["id", "firstName", "lastName"], // Fixed attribute names
+        },
+        {
+          model: ReviewImage,
+          attributes: ["id", "url"],
+        },
+      ],
+  });
+    return res.status(200).json({Reviews: spotReviews})
+  } catch (error) {
+    console.error("Could not find spot reviews:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/:spotId/reviews", requireAuth, reviewValidation, async (req, res) => { 
+  const { spotId } = req.params
+  const userId = req.user.id;
+  const { review, stars } = req.body
+  try{ 
+    const spot = await Spot.findByPk(spotId); 
+    if(!spot) return res.status(404).json({ message: "Spot not found" });
+    if (spot.ownerId=== userId) {
+      return res.status(403).json({ message: "You cannot review your own spot." });
+    }
+    const existingReview = await Review.findOne({where: { spotId, userId}});
+    if(existingReview)return res.status(400).json({message:"User already has a review on this spot."})
+    const newReview = await Review.create({
+    spotId,
+    userId,
+    review,
+    stars
+  });
+  return res.status(200).json({Review: newReview})
+  }catch(error){
+    console.error("Error creating a review:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+})
 module.exports = router;
