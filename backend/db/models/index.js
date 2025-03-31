@@ -10,15 +10,19 @@ const config = require(__dirname + '/../../config/database.js')[env];
 const db = {};
 
 
+
 let sequelize;
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
+// defining datatypes
+const DataTypes = Sequelize.DataTypes;
 
 const ReviewImage = require('./reviewimage')(sequelize, Sequelize.DataTypes);
-
+const Booking = require('./booking')(sequelize, DataTypes);
+db.Booking = Booking;
 
 fs
   .readdirSync(__dirname)

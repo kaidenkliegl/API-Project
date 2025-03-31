@@ -288,4 +288,82 @@ router.post('/:spotId/reviews', requireAuth, async (req, res) => {
 });
 
 
+// POST /api/spots/:spotId/bookings
+router.post('/:spotId/bookings', requireAuth, async (req, res) => {
+  const { spotId } = req.params;
+  const { startDate, endDate } = req.body;
+  const userId = req.user.id;
+
+  const spot = await Spot.findByPk(spotId);
+  if (!spot) {
+    return res.status(404).json({ message: "Spot couldn't be found" });
+  }
+
+  // Prevent owners from booking their own spots
+  if (spot.ownerId === userId) {
+    return res.status(403).json({ message: "Cannot book your own spot" });
+  }
+
+  // Check for booking conflicts
+  const existingBookings = await Booking.findAll({ where: { spotId } });
+  for (let booking of existingBookings) {
+    const start = new Date(booking.startDate);
+    const end = new Date(booking.endDate);
+    if (
+      (new Date(startDate) >= start && new Date(startDate) <= end) ||
+      (new Date(endDate) >= start && new Date(endDate) <= end)
+    ) {
+      return res.status(403).json({
+        message: "Sorry, this spot is already booked for the specified dates",
+        errors: {
+          startDate: "Start date conflicts with an existing booking",
+          endDate: "End date conflicts with an existing booking"
+        }
+      });
+    }
+  }
+
+  const booking = await Booking.create({
+    spotId,
+    userId,
+    startDate,
+    endDate
+  });
+
+  res.status(201).json(booking);
+});
+
+
+// GET /api/spots/:spotId/bookings
+router.get('/:spotId/bookings', requireAuth, async (req, res) => {
+  const { spotId } = req.params;
+  const userId = req.user.id;
+
+  const spot = await Spot.findByPk(spotId);
+  if (!spot) {
+    return res.status(404).json({ message: "Spot couldn't be found" });
+  }
+
+  const bookings = await Booking.findAll({
+    where: { spotId },
+    include: spot.ownerId === userId ? [
+      { model: User, attributes: ['id', 'firstName', 'lastName'] }
+    ] : []
+  });
+
+  // If not owner, only return booking dates
+  if (spot.ownerId !== userId) {
+    const limitedBookings = bookings.map(b => ({
+      spotId: b.spotId,
+      startDate: b.startDate,
+      endDate: b.endDate
+    }));
+    return res.json({ Bookings: limitedBookings });
+  }
+
+  res.json({ Bookings: bookings });
+});
+
+
+
 module.exports = router;

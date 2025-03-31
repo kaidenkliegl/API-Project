@@ -3,13 +3,16 @@ const router = require('express').Router();
 const sessionRouter = require('./session.js');
 const usersRouter = require('./users.js');
 const spotRouter = require('./spot.js')
-const { restoreUser } = require("../../utils/auth.js");
 const reviewRouter = require('./reviews.js');
+const bookingRouter = require('./bookings.js');
+const { restoreUser } = require("../../utils/auth.js");
+
+
 
 
 // Connect restoreUser middleware to the API router
-  // If current user session is valid, set req.user to the user in the database
-  // If current user session is not valid, set req.user to null
+// If current user session is valid, set req.user to the user in the database
+// If current user session is not valid, set req.user to null
 router.use(restoreUser);
 
 router.use('/session', sessionRouter);
@@ -23,6 +26,7 @@ router.use('/reviews', reviewRouter);
 
 router.use('/spots', reviewRouter); // so /spots/:spotId/reviews works
 
+router.use('/bookings', bookingRouter);
 
 // Keep this route to test frontend setup in Mod 5
 router.post('/test', function (req, res) {
