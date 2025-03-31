@@ -107,7 +107,6 @@ router.get("/", ValidateQueryFilters, async (req, res) => {
     if (maxPrice) where.price = { ...where.price, [Op.lte]: parseFloat(maxPrice) };
     if (city) where.city = city;
     if (state) where.state = state;
-
     const spots = await Spot.findAll({
       where,
       limit,
@@ -116,25 +115,44 @@ router.get("/", ValidateQueryFilters, async (req, res) => {
         {
           model: SpotImage,
           attributes: ["url"],
+          where: { preview: true },
           limit: 1,
         },
         {
           model: Review,
-          attributes: ["stars"], // Including review stars to calculate avgRating
+          attributes: ["stars"], 
         },
       ],
-      // attributes: {
-      //   include: [
-      //     [
-      //       Sequelize.fn("COALESCE", Sequelize.fn("AVG", Sequelize.col("Reviews.stars")), 0),
-      //       "avgRating",
-      //     ],
-      //   ],
-      // },
-      // group: ["Spot.id"],
+     
+    });
+    const formattedSpots = spots.map((spot) => {
+      const totalStars = spot.Reviews.reduce((sum, review) => sum + review.stars, 0);
+      const numReviews = spot.Reviews.length;
+      const avgStarRating = numReviews > 0 ? parseFloat((totalStars / numReviews).toFixed(1)) : 0;
+
+      const previewImage = spot.SpotImages.length > 0 ? spot.SpotImages[0].url : null;
+
+      return {
+        id: spot.id,
+        ownerId: spot.ownerId,
+        address: spot.address,
+        city: spot.city,
+        state: spot.state,
+        country: spot.country,
+        lat: spot.lat,
+        lng: spot.lng,
+        name: spot.name,
+        description: spot.description,
+        price: spot.price,
+        createdAt: spot.createdAt,
+        updatedAt: spot.updatedAt,
+        avgStarRating,
+        previewImage
+      };
     });
 
-    return res.status(200).json({ Spots: spots, page, size });
+
+    return res.status(200).json({ Spots: formattedSpots, page, size });
   } catch (error) {
     console.error("Error... could not fetch spots");
     return res.status(500).json({ message: "Error retrieving spots" });
@@ -153,12 +171,43 @@ router.get("/current", requireAuth, async (req, res) => {
         {
           model: SpotImage,
           attributes: ["url"],
+          where:{preview:true},
           limit: 1,
+        },
+        {
+          model: Review,
+          attributes: ["stars"], 
         },
       ],
     });
 
-    return res.status(200).json({ Spots: spots });
+    const formattedSpots = spots.map((spot) => {
+      const totalStars = spot.Reviews.reduce((sum, review) => sum + review.stars, 0);
+      const numReviews = spot.Reviews.length;
+      const avgStarRating = numReviews > 0 ? parseFloat((totalStars / numReviews).toFixed(1)) : 0;
+
+      const previewImage = spot.SpotImages.length > 0 ? spot.SpotImages[0].url : null;
+
+      return {
+        id: spot.id,
+        ownerId: spot.ownerId,
+        address: spot.address,
+        city: spot.city,
+        state: spot.state,
+        country: spot.country,
+        lat: spot.lat,
+        lng: spot.lng,
+        name: spot.name,
+        description: spot.description,
+        price: spot.price,
+        createdAt: spot.createdAt,
+        updatedAt: spot.updatedAt,
+        avgStarRating,
+        previewImage
+      };
+    });
+
+    return res.status(200).json({ Spots: formattedSpots});
   } catch (error) {
     return res.status(500).json({ message: "Error retrieving spots" });
   }
@@ -178,6 +227,11 @@ router.get("/:id", async (req, res) => {
           model: SpotImage,
           attributes: ["id", "url", "preview",],
           limit: 1,
+        },
+        {
+          model: User, 
+          as:"Owner",
+          attributes: ["id", "firstName", "lastName"],
         },
       ],
     });
@@ -238,7 +292,7 @@ router.post("/", requireAuth, validateSpot, async (req, res) => {
       price,
     });
 
-    return res.status(200).json({ newSpot: newSpot });
+    return res.status(201).json({ newSpot: newSpot });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Could not create a new Spot" });
@@ -254,7 +308,7 @@ router.post("/:id/images", requireAuth, async (req, res) => {
 
     const spot = await Spot.findByPk(id);
 
-    if (!spot) return res.status(404).json({ message: "Spot not found" });
+    if (!spot) return res.status(404).json({ message: "Spot could't be found" });
 
     if (spot.ownerId !== userId)
       return res.status(403).json({ message: "Forbidden access!" });
@@ -272,7 +326,7 @@ router.post("/:id/images", requireAuth, async (req, res) => {
     });
   } catch (error) {
     console.error("Could not add Image.", error);
-    return res.send(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
 
@@ -344,7 +398,7 @@ router.get("/:spotId/reviews", async (req, res) => {
   const { spotId } = req.params;
   try {
     const spot = await Spot.findByPk(spotId);
-    if (!spot) return res.status(404).json({ message: "Spot not found" });
+    if (!spot) return res.status(404).json({ message: "Spot could not be found" });
 
     const spotReviews = await Review.findAll({
       where: { spotId },
@@ -359,7 +413,7 @@ router.get("/:spotId/reviews", async (req, res) => {
         },
       ],
   });
-    return res.status(201).json({Reviews: spotReviews})
+    return res.status(20).json({Reviews: spotReviews})
   } catch (error) {
     console.error("Could not find spot reviews:", error);
     return res.status(500).json({ message: "Server error" });
@@ -384,7 +438,7 @@ router.post("/:spotId/reviews", requireAuth, reviewValidation, async (req, res) 
     review,
     stars
   });
-  return res.status(200).json({Review: newReview})
+  return res.status(201).json({Review: newReview})
   }catch(error){
     console.error("Error creating a review:", error);
     return res.status(500).json({ message: "Server error" });
