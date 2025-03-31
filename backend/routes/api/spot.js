@@ -5,6 +5,8 @@ const { User, Spot, SpotImage, Review, Booking } = require("../../db/models");
 const { check, query } = require("express-validator");
 const { handleValidationErrors } = require("../../utils/validation");
 const { Op, Model } = require("sequelize");
+const { ReviewImage } = require("../../db/models");
+
 
 //Using a validation middleware to catch any errors before they reach the database
 const validateSpot = [
@@ -237,5 +239,53 @@ router.post("/:id/images", requireAuth, async (req, res) => {
     return res.send(500).json({message: "Internal server error"})
   }
 });
+
+
+// POST /api/spots/:spotId/reviews
+router.post('/:spotId/reviews', requireAuth, async (req, res) => {
+  const { spotId } = req.params;
+  const { review, stars } = req.body;
+  const userId = req.user.id;
+
+  // Check if spot exists
+  const spot = await Spot.findByPk(spotId);
+  if (!spot) {
+    return res.status(404).json({ message: "Spot couldn't be found" });
+  }
+
+  // Check if user already reviewed this spot
+  const existingReview = await Review.findOne({
+    where: { spotId, userId }
+  });
+
+  if (existingReview) {
+    return res.status(500).json({
+      message: "User already has a review for this spot"
+    });
+  }
+
+  // Validate input
+  const errors = {};
+  if (!review) errors.review = "Review text is required";
+  if (!stars || stars < 1 || stars > 5) errors.stars = "Stars must be an integer from 1 to 5";
+
+  if (Object.keys(errors).length) {
+    return res.status(400).json({
+      message: "Validation error",
+      errors
+    });
+  }
+
+  // Create review
+  const newReview = await Review.create({
+    userId,
+    spotId,
+    review,
+    stars
+  });
+
+  res.status(201).json(newReview);
+});
+
 
 module.exports = router;
