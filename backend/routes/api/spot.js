@@ -99,17 +99,12 @@ const ValidateQueryFilters = [
 router.get("/", ValidateQueryFilters, async (req, res) => {
   try {
     const { page = 1, size = 20, minPrice, maxPrice, state, city } = req.query;
-    //pagination. Databases use zero based indexing
-    //parsing to turn the params into a number
     let limit = parseInt(size);
     const offset = (parseInt(page) - 1) * limit;
-    //query filter object
     let where = {};
-    //I'm storing this in the where object.. basically storing and sql statement that would be "SELECT * FROM spots WHERE price >= 100;""
+
     if (minPrice) where.price = { [Op.gte]: parseFloat(minPrice) };
-    //Now Storing "SELECT * FROM spots WHERE price BETWEEN 100 AND 500" as where.price
-    if (maxPrice)
-      where.price = { ...where.price, [Op.gte]: parseFloat(minPrice) };
+    if (maxPrice) where.price = { ...where.price, [Op.lte]: parseFloat(maxPrice) };
     if (city) where.city = city;
     if (state) where.state = state;
 
@@ -120,18 +115,32 @@ router.get("/", ValidateQueryFilters, async (req, res) => {
       include: [
         {
           model: SpotImage,
-          attributes: ["url"], // we must use array here. sequelize requires.
-          limit: 1, //might want to add a preview image column later. I believe this jsut chooses one image. Not a designated image to preview
+          attributes: ["url"],
+          limit: 1,
+        },
+        {
+          model: Review,
+          attributes: ["stars"], // Including review stars to calculate avgRating
         },
       ],
+      // attributes: {
+      //   include: [
+      //     [
+      //       Sequelize.fn("COALESCE", Sequelize.fn("AVG", Sequelize.col("Reviews.stars")), 0),
+      //       "avgRating",
+      //     ],
+      //   ],
+      // },
+      // group: ["Spot.id"],
     });
-    // return a json object
+
     return res.status(200).json({ Spots: spots, page, size });
   } catch (error) {
     console.error("Error... could not fetch spots");
     return res.status(500).json({ message: "Error retrieving spots" });
   }
 });
+
 
 //get current users spots
 router.get("/current", requireAuth, async (req, res) => {
@@ -194,7 +203,7 @@ router.post("/", requireAuth, validateSpot, async (req, res) => {
 
     const ownerId = req.user.id;
 
-    const newSpot = Spot.create({
+    const newSpot = await Spot.create({
       ownerId,
       address,
       city,
@@ -223,20 +232,18 @@ router.post("/:id/images", requireAuth, async (req, res) => {
 
     const spot = await Spot.findByPk(id);
 
-    console.log("spot found here!!!!", spot);
-
     if (!spot) return res.status(404).json({ message: "Spot not found" });
 
     if (spot.ownerId !== userId)
       return res.status(403).json({ message: "Forbidden access!" });
 
-    const image = SpotImage.create({
+    const image = await SpotImage.create({
       spotId: id,
       url,
       preview,
     });
 
-    return res.status(200).json({
+    return res.status(201).json({
       id: image.id,
       url: image.url,
       preview: image.preview,
@@ -330,7 +337,7 @@ router.get("/:spotId/reviews", async (req, res) => {
         },
       ],
   });
-    return res.status(200).json({Reviews: spotReviews})
+    return res.status(201).json({Reviews: spotReviews})
   } catch (error) {
     console.error("Could not find spot reviews:", error);
     return res.status(500).json({ message: "Server error" });
