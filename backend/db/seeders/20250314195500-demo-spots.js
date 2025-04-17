@@ -1,6 +1,11 @@
 'use strict';
 const { Spot} = require('../models')
-/** @type {import('sequelize-cli').Migration} */
+
+let options = {};
+if (process.env.NODE_ENV === 'production') {
+  options.schema = process.env.SCHEMA;  
+}
+
 module.exports = {
   async up (queryInterface, Sequelize) {
     await Spot.bulkCreate([
@@ -40,10 +45,11 @@ module.exports = {
         description: 'A cozy cabin in the mountains for a perfect getaway.',
         price: 175.00
       }
-    ], {});
+    ], { validate: true});
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.dropTable('Spots');
+    options.tableName = 'Spots';
+    return queryInterface.bulkDelete(options, null, {});
   }
 };
