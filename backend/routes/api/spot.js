@@ -346,9 +346,6 @@ router.put("/:id", requireAuth, validateSpot, async (req, res) => {
       description,
       price,
     } = req.body;
-
-    console.log("Requested Spot ID:", id);
-
     const spot = await Spot.findByPk(id);
 
     if (!spot) return res.status(404).json({ message: "Spot not found" });
@@ -413,7 +410,7 @@ router.get("/:spotId/reviews", async (req, res) => {
         },
       ],
   });
-    return res.status(20).json({Reviews: spotReviews})
+    return res.status(200).json({Reviews: spotReviews})
   } catch (error) {
     console.error("Could not find spot reviews:", error);
     return res.status(500).json({ message: "Server error" });

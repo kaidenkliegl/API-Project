@@ -6,6 +6,8 @@ const csurf = require('csurf');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const routes = require('./routes');
+const { restoreUser } = require('./utils/auth');
+
 
 //check if in production mode
 const { environment } = require('./config');
@@ -16,6 +18,7 @@ const app = express();
 
 //catch sequelize errors
 const { ValidationError } = require('sequelize');
+
 
 //logging requests and responses
 app.use(morgan('dev'));
