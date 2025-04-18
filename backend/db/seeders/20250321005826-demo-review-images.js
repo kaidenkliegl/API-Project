@@ -1,9 +1,11 @@
 'use strict';
 
+const { ReviewsImage } = "../models"
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.bulkInsert("ReviewImages", [
+    await ReviewsImage.bulkCreate([
       {
         reviewId: 1,  // Make sure this ID exists in the Reviews table
         url: "https://example.com/review-image1.jpg",

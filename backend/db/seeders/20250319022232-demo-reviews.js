@@ -1,9 +1,11 @@
 'use strict';
 
+const { Reviews } = "../models"
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.bulkInsert("Reviews", [
+    await Reviews.bulkCreate( [
       {
         spotId: 2,
         userId: 1,
