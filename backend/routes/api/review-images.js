@@ -19,20 +19,19 @@ const { reviewValidation } = require("../../utils/validation.js");
 router.delete("/:reviewId", requireAuth, async (req, res) => {
     const { reviewId } = req.params;
     const userId = req.user.id;
+  
     try {
-      const image = await Review.findByPk(reviewId, {
-        include: {
-          model: Spot,
-        },
-      });
+      const review = await Review.findByPk(reviewId);
   
-      if (!image)
-        return res.status(404).json({ message: "Could not find image." });
+      if (!review) {
+        return res.status(404).json({ message: "Review couldn't be found" });
+      }
   
-      if (image.Spot.ownerId !== userId) {
+      if (review.userId !== userId) {
         return res.status(403).json({ message: "Forbidden" });
       }
-      await image.destroy();
+  
+      await review.destroy();
   
       return res.status(200).json({ message: "Successfully deleted" });
     } catch (err) {
