@@ -391,6 +391,7 @@ router.delete("/:id", requireAuth, async (req, res) => {
   }
 });
 
+//get reviews for spot
 router.get("/:spotId/reviews", async (req, res) => {
   const { spotId } = req.params;
   try {
@@ -417,6 +418,7 @@ router.get("/:spotId/reviews", async (req, res) => {
   }
 });
 
+//add review
 router.post("/:spotId/reviews", requireAuth, reviewValidation, async (req, res) => { 
   const { spotId } = req.params
   const userId = req.user.id;
@@ -428,13 +430,15 @@ router.post("/:spotId/reviews", requireAuth, reviewValidation, async (req, res) 
       return res.status(403).json({ message: "You cannot review your own spot." });
     }
     const existingReview = await Review.findOne({where: { spotId, userId}});
-    if(existingReview)return res.status(400).json({message:"User already has a review on this spot."})
-    const newReview = await Review.create({
+    if(existingReview)return res.status(500).json({message:"User already has a review on this spot."})
+    
+      const newReview = await Review.create({
     spotId,
     userId,
     review,
     stars
   });
+
   return res.status(201).json({Review: newReview})
   }catch(error){
     console.error("Error creating a review:", error);

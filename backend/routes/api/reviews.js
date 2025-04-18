@@ -12,6 +12,8 @@ const {
 const { reviewValidation } = require("../../utils/validation");
 const { Op, Model, where } = require("sequelize");
 
+
+//get all reviews of current user
 router.get("/current", requireAuth, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -53,6 +55,7 @@ router.get("/current", requireAuth, async (req, res) => {
   }
 });
 
+//add iamge to review
 router.post("/:reviewId/images", requireAuth, async (req, res) => {
   try {
     const { reviewId } = req.params;
@@ -85,6 +88,7 @@ router.post("/:reviewId/images", requireAuth, async (req, res) => {
   }
 });
 
+//edit review
 router.put("/:reviewId", requireAuth, reviewValidation, async (req, res) => {
   const { reviewId } = req.params;
   const { review, stars } = req.body;
@@ -110,6 +114,7 @@ router.put("/:reviewId", requireAuth, reviewValidation, async (req, res) => {
   }
 });
 
+//delete review
 router.delete("/:reviewId", requireAuth, async (req, res) => {
   const { reviewId } = req.params;
   const userId = req.user.id;
