@@ -5,7 +5,7 @@ const { Review } = "../models"
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await Reviews.bulkCreate( [
+    await Review.bulkCreate( [
       {
         spotId: 2,
         userId: 1,
