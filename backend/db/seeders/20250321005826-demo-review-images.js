@@ -1,6 +1,6 @@
 'use strict';
 
-const { ReviewsImage } = require("../models")
+const { ReviewImage } = require("../models")
 
 let options = {};
 if (process.env.NODE_ENV === 'production') {
