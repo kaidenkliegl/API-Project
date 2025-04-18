@@ -1,6 +1,6 @@
 'use strict';
 
-const { Reviews } = "../models"
+const { Review } = "../models"
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
