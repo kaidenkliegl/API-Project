@@ -1,9 +1,16 @@
 'use strict';
 
+const { ReviewImage } = require("../models")
+
+let options = {};
+if (process.env.NODE_ENV === 'production') {
+ options.schema = process.env.SCHEMA; // define your schema in options object
+}
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.bulkInsert("ReviewImages", [
+    await ReviewImage.bulkCreate([
       {
         reviewId: 1,  // Make sure this ID exists in the Reviews table
         url: "https://example.com/review-image1.jpg",
