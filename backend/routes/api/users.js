@@ -13,6 +13,12 @@ const { User } = require('../../db/models');
 
 // Validate sign up Middleware
 const validateSignup = [
+  check('firstName')
+  .exists({ checkFalsy: true })
+  .withMessage('First Name is required.'),
+check('lastName')
+  .exists({ checkFalsy: true })
+  .withMessage('Last Name is required.'),
   check('email')
     .exists({ checkFalsy: true })
     .isEmail()
@@ -50,7 +56,7 @@ router.post(
 
       if (Object.keys(errors).length) {
         const err = new Error('User already exists');
-        err.status = 403;
+        err.status = 500;
         err.errors = errors;
         return next(err); 
       }
