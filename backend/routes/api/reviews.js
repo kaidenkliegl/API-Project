@@ -17,59 +17,89 @@ const { Op, Model, where } = require("sequelize");
 router.get("/current", requireAuth, async (req, res) => {
   try {
     const userId = req.user.id;
+
     const reviews = await Review.findAll({
       where: { userId },
       include: [
         {
-          model: Spot,
+          model: User,
+          attributes: ["id", "firstName", "lastName"]
+        },
+        {
+        model: Spot,
+        attributes: [
+          "id",
+          "ownerId",
+          "address",
+          "city",
+          "state",
+          "country",
+          "lat",
+          "lng",
+          "name",
+          "price"
+        ],
           include: [
             {
               model: SpotImage,
               attributes: ["url"],
               where: { preview: true },
               required: false,
-            },
-          ],
+            }
+          ]
         },
         {
           model: ReviewImage,
-          attributes: ["id", "url"],
-        },
-      ],
+          as: "ReviewImages",
+          attributes: ["id", "url"]
+        }
+      ]
     });
 
-    const formattedReviews = [];
+    const formattedReviews = reviews.map((review) => {
+      const reviewJSON = review.toJSON();
 
-    for (let i = 0; i < reviews.length; i++) {
-      const reviewData = reviews[i].toJSON();
-      const images = reviewData.Spot.SpotImages;
-      reviewData.Spot.previewImage = images?.length ? images[0].url : null;
-      delete reviewData.Spot.SpotImages;
-      formattedReviews.push(reviewData);
-    }
+     // Assign previewImage to Spot
+     const previewImage = reviewJSON.Spot?.SpotImages?.[0]?.url || null;
+     reviewJSON.Spot.previewImage = previewImage;
+
+     // Remove SpotImages array
+     delete reviewJSON.Spot.SpotImages;
+
+     return reviewJSON;
+   });
 
     return res.status(200).json({ Reviews: formattedReviews });
   } catch (error) {
     console.error("Error fetching reviews:", error);
-    res.status(500).json({ message: "SERVER ERROR" });
+    return res.status(500).json({ message: "SERVER ERROR" });
   }
 });
 
-//add iamge to review
+//add image to review
 router.post("/:reviewId/images", requireAuth, async (req, res) => {
   try {
     const { reviewId } = req.params;
     const { url } = req.body;
     const userId = req.user.id;
 
+ 
+
     if (!url) {
       return res.status(400).json({ message: "Image URL is required" });
     }
 
-    const review = await Review.findOne({ where: { id: reviewId, userId } });
+    const review = await Review.findByPk(reviewId);
+
     if (!review) {
       return res.status(404).json({ message: "Review not found" });
     }
+    
+    // Check if the current user is the owner
+    if (review.userId !== userId) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
     const reviewImages = await ReviewImage.count({ where: { reviewId } });
 
     if (reviewImages >= 10)
@@ -107,7 +137,7 @@ router.put("/:reviewId", requireAuth, reviewValidation, async (req, res) => {
     await updatedReview.update({ review, stars });
     return res
       .status(200)
-      .json({ message: "Updated review successfully", updatedReview });
+      .json( updatedReview );
   } catch (error) {
     console.error("Error updating review:", error);
     return res.status(500).json({ message: "SERVER ERROR" });
