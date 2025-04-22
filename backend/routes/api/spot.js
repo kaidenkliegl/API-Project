@@ -454,7 +454,7 @@ router.post("/:spotId/reviews", requireAuth, reviewValidation, async (req, res) 
     stars
   });
 
-  return res.status(201).json({Review: newReview})
+  return res.status(201).json(newReview)
   }catch(error){
     console.error("Error creating a review:", error);
     return res.status(500).json({ message: "Server error" });
