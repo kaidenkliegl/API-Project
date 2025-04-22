@@ -1,30 +1,29 @@
-// Import the express library for setting up the server
-const express = require("express");
-// Import express-async-errors to handle async route handler errors automatically
-require("express-async-errors");
-// Import morgan for logging HTTP requests and responses
-const morgan = require("morgan");
-// Import cors to enable Cross-Origin Resource Sharing (CORS) for API requests from different domains
-const cors = require("cors");
-// Import csurf for CSRF (Cross-Site Request Forgery) protection in the app
-const csurf = require("csurf");
-// Import helmet for security-related HTTP headers, helps protect from vulnerabilities
-const helmet = require("helmet");
-// Import cookie-parser to parse cookies sent with requests
-const cookieParser = require("cookie-parser");
+const express = require('express');
+require('express-async-errors');
+const morgan = require('morgan');
+const cors = require('cors');
+const csurf = require('csurf');
+const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
+const routes = require('./routes');
+const { restoreUser } = require('./utils/auth');
 
-const { ValidationError } = require('sequelize');
 
-const { environment } = require("./config");
-const isProduction = environment === "production";
+//check if in production mode
+const { environment } = require('./config');
+const isProduction = environment === 'production';
 
-//initialize express app
+//initialize Express application
 const app = express();
 
-//morgan middleware for logging infor about req and res's
+//catch sequelize errors
+const { ValidationError } = require('sequelize');
+
+
+//logging requests and responses
 app.use(morgan('dev'));
 
-
+//parse cookies and json bodies
 app.use(cookieParser());
 app.use(express.json());
 
@@ -52,9 +51,10 @@ if (!isProduction) {
     })
   );
 
-  // backend/app.js
-const routes = require('./routes');
-app.use(routes); // Connect all the routes
+  //connect to routes
+  app.use(routes);
+
+
 
 // Catch unhandled requests and forward to error handler.
 app.use((_req, _res, next) => {
@@ -65,16 +65,35 @@ app.use((_req, _res, next) => {
     next(err);
   });
 
+
+// Process sequelize errors
+app.use((err, _req, _res, next) => {
+  // check if error is a Sequelize error:
+  if (err instanceof ValidationError) {
+    let errors = {};
+    for (let error of err.errors) {
+      errors[error.path] = error.message;
+    }
+    err.title = 'Validation error';
+    err.errors = errors;
+  }
+  next(err);
+});
+
+
+
 // Error formatter
 app.use((err, _req, res, _next) => {
     res.status(err.status || 500);
-    console.error(err);
+    //console.error(err);
     res.json({
-      title: err.title || 'Server Error',
+      //title: err.title || 'Server Error',
       message: err.message,
-      errors: err.errors,
-      stack: isProduction ? null : err.stack
+      errors: err.errors || {},
+      //stack: isProduction ? null : err.stack
     });
   });
 
-module.exports = app;
+
+
+  module.exports = app;
