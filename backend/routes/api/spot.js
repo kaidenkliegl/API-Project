@@ -304,10 +304,10 @@ router.post("/", requireAuth, validateSpot, async (req, res) => {
       lng,
       name,
       description,
-      price,
+      price
     });
 
-    return res.status(201).json({ newSpot: newSpot });
+    return res.status(201).json( newSpot );
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Could not create a new Spot" });
