@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router(); // this is the router object
-const { setTokenCookie, requireAuth } = require("../../utils/auth.js");
+const { requireAuth } = require("../../utils/auth.js");
 
 const {
   User,
