@@ -152,7 +152,7 @@ router.get("/", ValidateQueryFilters, async (req, res) => {
     });
 
 
-    return res.status(200).json({ Spots: formattedSpots, page, size });
+    return res.status(200).json({ Spots: formattedSpots });
   } catch (error) {
     console.error("Error... could not fetch spots");
     return res.status(500).json({ message: "Error retrieving spots" });
