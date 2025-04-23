@@ -273,7 +273,7 @@ router.get("/:id", async (req, res) => {
       Owner: spot.Owner,
     });
   } catch (error) {
-    console.error("Error fetching spot");
+    console.error(error);
     return res.status(500).json({ message: "Error retrieving spot from id" });
   }
 });
@@ -394,10 +394,11 @@ router.delete("/:id", requireAuth, async (req, res) => {
   const userId = req.user.id;
   try {
     const spot = await Spot.findByPk(id);
-    if (!spot) return res.status(404).json({ message: "Spot not found" });
+    
     if (spot.ownerId !== userId) {
       return res.status(403).json({ message: "Forbidden access!" });
     }
+    if (!spot) return res.status(404).json({ message: "Spot not found" });
     await spot.destroy();
 
     return res.status(200).json({ message: "Spot successfully deleted" });
