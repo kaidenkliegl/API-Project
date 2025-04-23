@@ -224,6 +224,7 @@ router.get("/current", requireAuth, async (req, res) => {
 
     return res.status(200).json({ Spots: formattedSpots});
   } catch (error) {
+    console.log(error)
     return res.status(500).json({ message: "Error retrieving spots" });
   }
 });
