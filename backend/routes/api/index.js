@@ -4,16 +4,14 @@ const sessionRouter = require('./session.js');
 const usersRouter = require('./users.js');
 const { restoreUser } = require("../../utils/auth.js");
 
-// Connect restoreUser middleware to the API router
-  // If current user session is valid, set req.user to the user in the database
-  // If current user session is not valid, set req.user to null
+// Apply restoreUser middleware first
 router.use(restoreUser);
 
+// Then mount your routers
 router.use('/session', sessionRouter);
-
 router.use('/users', usersRouter);
 
-// Keep this route to test frontend setup in Mod 5
+// Test route
 router.post('/test', function (req, res) {
   res.json({ requestBody: req.body });
 });
