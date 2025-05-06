@@ -1,3 +1,4 @@
+// /backend/db/models/spot.js
 'use strict';
 const {
   Model
@@ -6,7 +7,11 @@ module.exports = (sequelize, DataTypes) => {
   class Spot extends Model {
    
     static associate(models) {
-      // define association here
+      Spot.hasMany(models.SpotImage, {
+        foreignKey: 'spotId',
+        onDelete: 'CASCADE',
+        hooks: true
+      });
     }
   }
   Spot.init({

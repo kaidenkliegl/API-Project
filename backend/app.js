@@ -6,6 +6,7 @@ const csurf = require('csurf');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const routes = require('./routes');
+const spotsRouter = require('./routes/api/spots');
 
 //check if in production mode
 const { environment } = require('./config');

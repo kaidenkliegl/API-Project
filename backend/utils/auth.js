@@ -66,9 +66,6 @@ const restoreUser = (req, res, next) => {
     });
   };
 
-
-
-
   // Require Authentication
 
 // If there is no current user, return an error
